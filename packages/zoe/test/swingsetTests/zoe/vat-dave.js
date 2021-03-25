@@ -75,20 +75,7 @@ const build = async (log, zoe, issuers, payments, installations, timer) => {
       const { value: invitationValue } = await E(invitationIssuer).getAmountOf(
         exclInvitation,
       );
-      const { source } = await E(installation).getBundle();
-      // pick some arbitrary code points as a signature.
-      assert(
-        source.includes('asset: give.Asset,'),
-        X`source bundle didn't match at "asset: give.Asset,"`,
-      );
-      assert(
-        source.includes('swap(zcf, firstSeat, matchingSeat)'),
-        X`source bundle didn't match at "swap(zcf, firstSeat, matchingSeat)"`,
-      );
-      assert(
-        source.includes('makeMatchingInvitation'),
-        X`source bundle didn't match at "makeMatchingInvitation"`,
-      );
+
       assert(installation === installations.atomicSwap, X`wrong installation`);
       assert(
         sameStructure(
@@ -97,6 +84,12 @@ const build = async (log, zoe, issuers, payments, installations, timer) => {
         ),
         X`issuerKeywordRecord were not as expected`,
       );
+
+      // TODO Demonstrate the verification that the installation
+      // corresponds to the intended code artifact, by hash.
+      //   const sha512 = await E(installation).getSha512();
+      //   assert.is(sha512, '');
+      // https://github.com/Agoric/agoric-sdk/issues/3512
 
       // Dave expects that Bob has already made an offer in the swap
       // with the following rules:
