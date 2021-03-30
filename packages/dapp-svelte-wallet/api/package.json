@@ -2,6 +2,9 @@
   "name": "@agoric/dapp-svelte-wallet-api",
   "private": true,
   "version": "0.9.12",
+  "parsers": {
+    "js": "mjs"
+  },
   "description": "Wallet web server handler",
   "scripts": {
     "build": "exit 0",
