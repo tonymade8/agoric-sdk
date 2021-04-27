@@ -11,8 +11,8 @@
  * @typedef {import('./defer').Deferred<T>} Deferred
  */
 
+import { netstringReader, netstringWriter } from '@endo/netstring';
 import { defer } from './defer';
-import * as netstring from './netstring';
 import * as node from './node-stream';
 
 // This will need adjustment, but seems to be fine for a start.
@@ -122,13 +122,13 @@ export function xsnap(options) {
     throw Error(`${name} exited`);
   });
 
-  const messagesToXsnap = netstring.writer(
+  const messagesToXsnap = netstringWriter(
     node.writer(
       /** @type {NodeJS.WritableStream} */ (xsnapProcess.stdio[3]),
       `messages to ${name}`,
     ),
   );
-  const messagesFromXsnap = netstring.reader(
+  const messagesFromXsnap = netstringReader(
     /** @type {AsyncIterable<Uint8Array>} */ (xsnapProcess.stdio[4]),
   );
 
