@@ -1467,6 +1467,11 @@
   resolved "https://registry.yarnpkg.com/@endo/base64/-/base64-0.1.0.tgz#d321d5b36f16648f0b0b05d96f93501d6a461501"
   integrity sha512-wVBsKkVV3t3mGT1XVoQAYkBpnum/OEJ0kBka3s7PSQnAne0aFmi1P9IIWyHzsoIgdai7ONTpGSgBZIk6X9dOrw==
 
+"@endo/netstring@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@endo/netstring/-/netstring-0.1.0.tgz#ffff9acba3009898a2fba097ee06cd3624b16769"
+  integrity sha512-F3WRZofSHPJnTANXwX0dAW6/X9EOshtPEeMhD/FwD4ZgafO6EtuhTiy1O45GKb7YZ/+JDIWfgMRWQmlTjdm6DA==
+
 "@eslint/eslintrc@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-0.4.0.tgz#99cc0a0584d72f1df38b900fb062ba995f395547"
