@@ -39,7 +39,9 @@
  * @typedef {Object} ParamManagerBase
  * @property {() => Record<Keyword,ParamDescription>} getParams
  * @property {(name: string) => ParamDescription} getParam
- *
+ */
+
+/**
  * @typedef {{ [updater: string]: (arg: ParamValue) => void }} ParamManagerUpdaters
  * @typedef {ParamManagerBase & ParamManagerUpdaters} ParamManagerFull
  */
