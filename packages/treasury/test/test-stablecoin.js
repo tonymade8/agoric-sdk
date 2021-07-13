@@ -25,6 +25,7 @@ const liquidationRoot = '../src/liquidateMinimum.js';
 const autoswapRoot = '@agoric/zoe/src/contracts/newSwap/multipoolAutoswap';
 const contractGovernorRoot = '@agoric/governance/src/contractGovernor';
 const committeeRegistrarRoot = '@agoric/governance/src/committeeRegistrar';
+const ballotCounterRoot = '@agoric/governance/src/binaryBallotCounter';
 
 const trace = makeTracer('TestST');
 
@@ -42,7 +43,7 @@ function setUpZoeForTest(setJig) {
   }
 
   /**
-   * These properties will be asssigned by `setJig` in the contract.
+   * These properties will be assigned by `setJig` in the contract.
    *
    * @typedef {Object} TestContext
    * @property {ContractFacet} zcf
@@ -129,7 +130,6 @@ async function setupServices(
   timer = buildManualTimer(console.log),
   quoteInterval,
 ) {
-  /* @type {TestContext} */
   let testJig;
   const setJig = jig => {
     testJig = jig;
@@ -142,37 +142,39 @@ async function setupServices(
     liquidation,
     governor,
     registrar,
+    counter,
   ] = await Promise.all([
     makeInstall(autoswapRoot, zoe),
     makeInstall(stablecoinRoot, zoe),
     makeInstall(liquidationRoot, zoe),
     makeInstall(contractGovernorRoot, zoe),
     makeInstall(committeeRegistrarRoot, zoe),
+    makeInstall(ballotCounterRoot, zoe),
   ]);
-  const installs = { autoswap, stablecoin, liquidation, governor, registrar };
+  const installs = {
+    autoswap,
+    stablecoin,
+    liquidation,
+    governor,
+    registrar,
+    counter,
+  };
 
-  const {
-    creatorFacet: committeeCreator,
-    instance: registrarInstance,
-  } = await E(zoe).startInstance(installs.registrar, {}, registrarTerms);
+  const { creatorFacet: committeeCreator } = await E(zoe).startInstance(
+    installs.registrar,
+    {},
+    registrarTerms,
+  );
 
-  const governorTerms = { registrarInstance };
   const {
     instance: governorInstance,
     publicFacet: governorPublicFacet,
     creatorFacet: governorCreatorFacet,
-  } = await E(zoe).startInstance(installs.governor, {}, governorTerms);
-  const g = { governorInstance, governorPublicFacet, governorCreatorFacet };
-
-  await E(governorCreatorFacet).setRegistrar(
-    E(committeeCreator).getQuestionInvitation(),
-  );
-
+  } = await E(zoe).startInstance(installs.governor);
   const priceAuthorityPromiseKit = makePromiseKit();
   const priceAuthorityPromise = priceAuthorityPromiseKit.promise;
-  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(
-    zoe,
-  ).startInstance(
+  const governedContract = await E(governorCreatorFacet).startGovernedInstance(
+    committeeCreator,
     installs.stablecoin,
     {},
     {
@@ -185,6 +187,17 @@ async function setupServices(
       governedParams: governedParameterTerms,
     },
   );
+
+  const stablecoinMachineP = E(governedContract).getCreatorFacet();
+  const lenderP = E(governedContract).getPublicFacet();
+
+  const [stablecoinMachine, lender] = await Promise.all([
+    stablecoinMachineP,
+    lenderP,
+  ]);
+
+  const g = { governorInstance, governorPublicFacet, governorCreatorFacet };
+
   const s = { stablecoinMachine, lender };
   const { runIssuerRecord, govIssuerRecord, autoswap: autoswapAPI } = testJig;
   const issuers = { run: runIssuerRecord, gov: govIssuerRecord };
@@ -1443,9 +1456,7 @@ test('mutable liquidity triggers and interest', async t => {
 });
 
 test('bad chargingPeriod', async t => {
-  /* @type {TestContext} */
   const setJig = () => {};
-  /* @type {TestContext} */
   const zoe = setUpZoeForTest(setJig);
 
   const autoswapInstall = await makeInstall(autoswapRoot, zoe);

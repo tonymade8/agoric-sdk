@@ -25,6 +25,12 @@ export const governedParameterTerms = {
   ],
 };
 
+/** @type {{ FEE: 'fee', POOL: 'pool' }} */
+export const ParamKey = {
+  FEE: 'fee',
+  POOL: 'pool',
+};
+
 export const makeFeeParamManager = loanParams => {
   /** @type {FeeParamManager} */
   return buildParamManager([

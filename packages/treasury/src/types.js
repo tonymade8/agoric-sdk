@@ -32,9 +32,9 @@
  * @property {(collateralIssuer: Issuer, collateralKeyword: Keyword, rates: Rates) => Promise<Invitation>} makeAddTypeInvitation
  * @property {() => Instance} getAMM
  * @property {() => Promise<Array<Collateral>>} getCollaterals
- * @property {() => Payment} getBootstrapPayment
- * @property {() => ContractGovernor} getFeeGovernor
- * @property {(Brand) => ContractGovernor} getPoolGovernor
+ * @property {() => ERef<Payment>} getBootstrapPayment
+ * @property {() => ParamManagerAccessor} getParamMgrAccessor,
+ * @property {(Brand) => Governor} getContractGovernor
  */
 
 /**

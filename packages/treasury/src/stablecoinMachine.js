@@ -35,6 +35,7 @@ import {
 import { AmountMath } from '@agoric/ertp';
 import { sameStructure } from '@agoric/same-structure';
 
+import { Far } from '@agoric/marshal';
 import { makeTracer } from './makeTracer';
 import { makeVaultManager } from './vaultManager';
 import { makeLiquidationStrategy } from './liquidateMinimum';
@@ -45,6 +46,7 @@ import {
   PROTOCOL_FEE_KEY,
   POOL_FEE_KEY,
   governedParameterTerms as governedParameterLocal,
+  ParamKey,
 } from './params';
 
 const trace = makeTracer('ST');
@@ -62,6 +64,7 @@ export async function start(zcf) {
     electionManager,
     governedParams,
   } = zcf.getTerms();
+  const governorPublic = E(zcf.getZoeService()).getPublicFacet(electionManager);
 
   assert.typeof(
     loanParams.chargingPeriod,
@@ -78,13 +81,7 @@ export async function start(zcf) {
     sameStructure(governedParams, harden(governedParameterLocal)),
     X`Terms must match ${governedParameterLocal}`,
   );
-  const governorPublic = E(zcf.getZoeService()).getPublicFacet(electionManager);
   const feeParams = makeFeeParamManager(loanParams);
-  const feeGovernor = await E(governorPublic).governContract(
-    zcf.getInstance(),
-    feeParams,
-    'loanParams',
-  );
 
   const [runMint, govMint] = await Promise.all([
     zcf.makeZCFMint('RUN', undefined, harden({ decimalPlaces: 6 })),
@@ -138,12 +135,12 @@ export async function start(zcf) {
       timer: timerService,
       // TODO(hibbert): make the AMM use a paramManager. For now, the values
       //  are fixed after creation of an autoswap instance.
-      poolFee: feeParams.getParams()[POOL_FEE_KEY].value,
-      protocolFee: feeParams.getParams()[PROTOCOL_FEE_KEY].value,
+      poolFee: feeParams.getParam(POOL_FEE_KEY).value,
+      protocolFee: feeParams.getParam(PROTOCOL_FEE_KEY).value,
     },
   );
 
-  const poolGovernors = makeStore('brand'); // Brand -> poolGovernor
+  const poolParamManagers = makeStore('brand'); // Brand -> poolGovernor
 
   // We process only one offer per collateralType. They must tell us the
   // dollar value of their collateral, and we create that many RUN.
@@ -157,14 +154,9 @@ export async function start(zcf) {
     const collateralBrand = zcf.getBrandForIssuer(collateralIssuer);
     assert(!collateralTypes.has(collateralBrand));
 
+    assert(!poolParamManagers.has(collateralBrand));
     const poolParamManager = makePoolParamManager(loanParams, rates);
-    assert(!poolGovernors.has(collateralBrand));
-    const poolGovernor = await E(governorPublic).governContract(
-      zcf.getInstance(),
-      poolParamManager,
-      'poolParams',
-    );
-    poolGovernors.init(collateralBrand, poolGovernor);
+    poolParamManagers.init(collateralBrand, poolParamManager);
 
     const { creatorFacet: liquidationFacet } = await E(zoe).startInstance(
       liquidationInstall,
@@ -353,6 +345,30 @@ export async function start(zcf) {
     return getBootstrapPayment;
   }
 
+  const getParams = paramDesc => {
+    switch (paramDesc.key) {
+      case ParamKey.FEE:
+        return feeParams.getParams();
+      case ParamKey.POOL:
+        return poolParamManagers.get(paramDesc.collateralBrand).getParams();
+      default:
+        throw Error(`Unrecognized param key ${paramDesc.key}`);
+    }
+  };
+
+  const getParamState = paramDesc => {
+    switch (paramDesc.keyl) {
+      case ParamKey.FEE:
+        return feeParams.getParam(paramDesc.parameterName);
+      case ParamKey.POOL:
+        return poolParamManagers
+          .get(paramDesc.collateralBrand)
+          .getParam(paramDesc.parameterName);
+      default:
+        throw Error(`Unrecognized param key ${paramDesc.key}`);
+    }
+  };
+
   const publicFacet = harden({
     getAMM() {
       return autoswapInstance;
@@ -364,7 +380,9 @@ export async function start(zcf) {
     getRunIssuer() {
       return runIssuer;
     },
-    getFeeParams: feeParams.getParams,
+    getParamState,
+    getParams,
+    getContractGovernor: () => governorPublic,
   });
 
   const { makeCollectFeesInvitation } = makeMakeCollectFeesInvitation(
@@ -373,6 +391,20 @@ export async function start(zcf) {
     autoswapCreatorFacet,
     runBrand,
   );
+
+  const getParamMgrAccessor = () =>
+    Far('paramManagerAccessor', {
+      get: paramDesc => {
+        switch (paramDesc.keyl) {
+          case ParamKey.FEE:
+            return feeParams;
+          case ParamKey.POOL:
+            return poolParamManagers.get(paramDesc.collateralBrand);
+          default:
+            throw Error(`Unrecognized param key ${paramDesc.key}`);
+        }
+      },
+    });
 
   /** @type {StablecoinMachine} */
   const stablecoinMachine = harden({
@@ -384,9 +416,9 @@ export async function start(zcf) {
     getRewardAllocation,
     getBootstrapPayment: mintBootstrapPayment(),
     makeCollectFeesInvitation,
-    getFeeGovernor: () => feeGovernor,
-    getPoolGovernor: poolGovernors.get,
+    getParamMgrAccessor,
+    getContractGovernor: () => electionManager,
   });
 
-  return harden({ creatorFacet: stablecoinMachine, publicFacet });
+  return harden({ creatorFacet: stablecoinMachine, publicFacet, ParamKey });
 }
