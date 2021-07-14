@@ -25,12 +25,12 @@ const setupGovernance = async (
   contractInstance,
 ) => {
   const voteOnParamChange = async (
-    paramName,
     proposedValue,
     ballotCounterInstallation,
     closingRule,
     paramDesc,
   ) => {
+    const paramName = paramDesc.parameterName;
     const paramMgr = E(paramManagerAccessor).get(paramDesc);
     const param = await E(paramMgr).getParam(paramName);
     assertType(param.type, proposedValue, paramName);

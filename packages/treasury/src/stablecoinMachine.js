@@ -352,7 +352,7 @@ export async function start(zcf) {
       case ParamKey.POOL:
         return poolParamManagers.get(paramDesc.collateralBrand).getParams();
       default:
-        throw Error(`Unrecognized param key ${paramDesc.key}`);
+        throw Error(`Unrecognized param key for Params '${paramDesc.key}'`);
     }
   };
 
@@ -365,7 +365,7 @@ export async function start(zcf) {
           .get(paramDesc.collateralBrand)
           .getParam(paramDesc.parameterName);
       default:
-        throw Error(`Unrecognized param key ${paramDesc.key}`);
+        throw Error(`Unrecognized param key for State '${paramDesc.key}'`);
     }
   };
 
@@ -395,13 +395,15 @@ export async function start(zcf) {
   const getParamMgrAccessor = () =>
     Far('paramManagerAccessor', {
       get: paramDesc => {
-        switch (paramDesc.keyl) {
+        switch (paramDesc.key) {
           case ParamKey.FEE:
             return feeParams;
           case ParamKey.POOL:
             return poolParamManagers.get(paramDesc.collateralBrand);
           default:
-            throw Error(`Unrecognized param key ${paramDesc.key}`);
+            throw Error(
+              `Unrecognized param key for accessor '${paramDesc.key}'`,
+            );
         }
       },
     });
