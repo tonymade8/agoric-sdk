@@ -2,13 +2,14 @@
 
 import { test } from './prepare-test-env-ava.js';
 
-import {
-  getInterfaceOf,
-  passStyleOf,
-  ALLOW_IMPLICIT_REMOTABLES,
-} from '../src/passStyleOf.js';
+import { passStyleOf } from '../src/passStyleOf.js';
 
-import { Remotable, Far, makeMarshal } from '../src/marshal.js';
+import { Remotable, Far } from '../src/make-far.js';
+import { makeMarshal } from '../src/marshal.js';
+import {
+  ALLOW_IMPLICIT_REMOTABLES,
+  getInterfaceOf,
+} from '../src/helpers/remotable.js';
 
 const { quote: q } = assert;
 const { create, getPrototypeOf, prototype: objectPrototype } = Object;
@@ -123,11 +124,11 @@ const NON_METHOD = {
 const IFACE_ALLEGED = {
   message: /For now, iface "Bad remotable proto" must be "Remotable" or begin with "Alleged: "; unimplemented/,
 };
-const UNEXPECTED_PROPS = {
-  message: /Unexpected properties on Remotable Proto .*/,
+const UNEXPECTED_PASS_STYLE = {
+  message: /Unrecognized PassStyle/,
 };
-const EXPECTED_PRESENCE = {
-  message: /Expected 'remotable', not "string"/,
+const EXPECTED_PASS_STYLE = {
+  message: /must have a \[PASS_STYLE\] property:/,
 };
 
 // Parallels the getInterfaceOf validation cases, explaining why
@@ -135,14 +136,19 @@ const EXPECTED_PRESENCE = {
 test('passStyleOf validation of remotables', t => {
   t.throws(() => passStyleOf(goodRemotableProto), NON_METHOD);
   t.throws(() => passStyleOf(badRemotableProto1), NON_METHOD);
-  t.throws(() => passStyleOf(badRemotableProto2), NON_METHOD);
+  t.throws(() => passStyleOf(badRemotableProto2), UNEXPECTED_PASS_STYLE);
   t.throws(() => passStyleOf(badRemotableProto3), NON_METHOD);
   t.throws(() => passStyleOf(badRemotableProto4), NON_METHOD);
 
   t.is(passStyleOf(sub(goodRemotableProto)), 'remotable');
-  t.throws(() => passStyleOf(sub(badRemotableProto1)), UNEXPECTED_PROPS);
-  t.throws(() => passStyleOf(sub(badRemotableProto2)), EXPECTED_PRESENCE);
-  t.throws(() => passStyleOf(sub(badRemotableProto3)), UNEXPECTED_PROPS);
+
+  // t.throws(() => passStyleOf(sub(badRemotableProto1)), UNEXPECTED_PROPS);
+  // t.throws(() => passStyleOf(sub(badRemotableProto2)), EXPECTED_PRESENCE);
+  // t.throws(() => passStyleOf(sub(badRemotableProto3)), UNEXPECTED_PROPS);
+  t.throws(() => passStyleOf(sub(badRemotableProto1)), EXPECTED_PASS_STYLE);
+  t.throws(() => passStyleOf(sub(badRemotableProto2)), UNEXPECTED_PASS_STYLE);
+  // t.throws(() => passStyleOf(sub(badRemotableProto3)), TO_STRING_NONFUNC);
+
   t.throws(() => passStyleOf(sub(badRemotableProto4)), IFACE_ALLEGED);
 });
 
