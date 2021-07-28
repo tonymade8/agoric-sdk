@@ -1,4 +1,5 @@
-/* global require */
+// @ts-check
+
 import '@agoric/install-ses';
 
 import fs from 'fs';
@@ -15,7 +16,7 @@ const { freeze } = Object;
 const ld = (() => {
   /** @param { string } ref */
   // WARNING: ambient
-  const resolve = ref => require.resolve(ref);
+  const resolve = ref => new URL(ref, import.meta.url).pathname;
   const readFile = fs.promises.readFile;
   return freeze({
     resolve,
