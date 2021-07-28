@@ -425,6 +425,7 @@ export default function buildKernel(
   }
 
   async function deliverAndLogToVat(vatID, kd, vd, useMeter) {
+    const policyInput = { type: 'crank' };
     // eslint-disable-next-line no-use-before-define
     assert(vatWarehouse.lookup(vatID));
     const vatKeeper = kernelKeeper.provideVatKeeper(vatID);
@@ -446,7 +447,7 @@ export default function buildKernel(
         // probably a metering fault, or a bug in the vat's dispatch()
         console.log(`delivery problem, terminating vat ${vatID}`, problem);
         setTerminationTrigger(vatID, true, true, makeError(problem));
-        return;
+        return harden({ type: 'crank-failed' });
       }
       if (deliveryResult[0] === 'ok' && useMeter && meterID) {
         const metering = deliveryResult[2];
@@ -454,12 +455,13 @@ export default function buildKernel(
         const consumed = metering.compute;
         assert.typeof(consumed, 'number');
         const used = BigInt(consumed);
+        policyInput.computrons = used;
         const underflow = deductMeter(meterID, used, true);
         if (underflow) {
           console.log(`meter ${meterID} underflow, terminating vat ${vatID}`);
           const err = makeError('meter underflow, vat terminated');
           setTerminationTrigger(vatID, true, true, err);
-          return;
+          return harden({ type: 'crank-failed' });
         }
       }
     } catch (e) {
@@ -467,10 +469,12 @@ export default function buildKernel(
       console.error(`error in kernel.deliver:`, e);
       throw e;
     }
+    return harden(policyInput);
   }
 
   async function deliverToVat(vatID, target, msg) {
     insistMessage(msg);
+    let policyInput = { type: 'none' };
     kernelKeeper.incStat('dispatches');
     kernelKeeper.incStat('dispatchDeliver');
     // eslint-disable-next-line no-use-before-define
@@ -482,8 +486,9 @@ export default function buildKernel(
       const kd = harden(['message', target, msg]);
       // eslint-disable-next-line no-use-before-define
       const vd = vatWarehouse.kernelDeliveryToVatDelivery(vatID, kd);
-      await deliverAndLogToVat(vatID, kd, vd, true);
+      policyInput = await deliverAndLogToVat(vatID, kd, vd, true);
     }
+    return policyInput;
   }
 
   function extractPresenceIfPresent(data) {
@@ -507,11 +512,12 @@ export default function buildKernel(
 
   async function deliverToTarget(target, msg) {
     insistMessage(msg);
+    let policyInput = { type: 'none' };
     const { type } = parseKernelSlot(target);
     if (type === 'object') {
       const vatID = kernelKeeper.ownerOfKernelObject(target);
       if (vatID) {
-        await deliverToVat(vatID, target, msg);
+        policyInput = await deliverToVat(vatID, target, msg);
       } else if (msg.result) {
         resolveToError(msg.result, VAT_TERMINATION_ERROR);
       }
@@ -524,7 +530,7 @@ export default function buildKernel(
       } else if (kp.state === 'fulfilled') {
         const presence = extractPresenceIfPresent(kp.data);
         if (presence) {
-          await deliverToTarget(presence, msg);
+          policyInput = await deliverToTarget(presence, msg);
         } else if (msg.result) {
           const s = `data is not callable, has no method ${msg.method}`;
           // TODO: maybe replicate whatever happens with {}.foo() or 3.foo()
@@ -546,7 +552,7 @@ export default function buildKernel(
           const deciderVat = vatWarehouse.lookup(kp.decider);
           if (deciderVat) {
             if (deciderVat.enablePipelining) {
-              await deliverToVat(kp.decider, target, msg);
+              policyInput = await deliverToVat(kp.decider, target, msg);
             } else {
               kernelKeeper.addMessageToPromiseQueue(target, msg);
             }
@@ -560,10 +566,12 @@ export default function buildKernel(
     } else {
       assert.fail(X`unable to send() to slot.type ${type}`);
     }
+    return policyInput;
   }
 
   async function processNotify(message) {
     const { vatID, kpid } = message;
+    let policyInput = { type: 'none' };
     insistVatID(vatID);
     insistKernelType('promise', kpid);
     kernelKeeper.incStat('dispatches');
@@ -580,13 +588,13 @@ export default function buildKernel(
       if (!vatKeeper.hasCListEntry(kpid)) {
         kdebug(`vat ${vatID} has no c-list entry for ${kpid}`);
         kdebug(`skipping notify of ${kpid} because it's already been done`);
-        return;
+        return policyInput;
       }
       const targets = getKpidsToRetire(kernelKeeper, kpid, p.data);
       if (targets.length === 0) {
         kdebug(`no kpids to retire`);
         kdebug(`skipping notify of ${kpid} because it's already been done`);
-        return;
+        return policyInput;
       }
       for (const toResolve of targets) {
         resolutions.push([toResolve, kernelKeeper.getKernelPromise(toResolve)]);
@@ -595,18 +603,20 @@ export default function buildKernel(
       // eslint-disable-next-line no-use-before-define
       const vd = vatWarehouse.kernelDeliveryToVatDelivery(vatID, kd);
       vatKeeper.deleteCListEntriesForKernelSlots(targets);
-      await deliverAndLogToVat(vatID, kd, vd, true);
+      policyInput = await deliverAndLogToVat(vatID, kd, vd, true);
     }
+    return policyInput;
   }
 
   async function processGCMessage(message) {
     // used for dropExports, retireExports, and retireImports
+    let policyInput = harden({ type: 'none' });
     const { type, vatID, krefs } = message;
     // console.log(`-- processGCMessage(${vatID} ${type} ${krefs.join(',')})`);
     insistVatID(vatID);
     // eslint-disable-next-line no-use-before-define
     if (!vatWarehouse.lookup(vatID)) {
-      return; // can't collect from the dead
+      return policyInput; // can't collect from the dead
     }
     const kd = harden([type, krefs]);
     if (type === 'retireExports') {
@@ -619,7 +629,8 @@ export default function buildKernel(
     }
     // eslint-disable-next-line no-use-before-define
     const vd = vatWarehouse.kernelDeliveryToVatDelivery(vatID, kd);
-    await deliverAndLogToVat(vatID, kd, vd, false);
+    policyInput = await deliverAndLogToVat(vatID, kd, vd, false);
+    return policyInput;
   }
 
   async function processCreateVat(message) {
@@ -660,11 +671,14 @@ export default function buildKernel(
       queueToKref(vatAdminRootKref, 'newVatCallback', args, 'logFailure');
     }
 
+    const policyInput = harden({ type: 'create-vat' });
+
     // eslint-disable-next-line no-use-before-define
     return vatWarehouse
       .createDynamicVat(vatID)
       .then(makeSuccessResponse, makeErrorResponse)
       .then(sendResponse)
+      .then(() => policyInput)
       .catch(err => console.error(`error in vat creation`, err));
   }
 
@@ -689,12 +703,14 @@ export default function buildKernel(
 
   let processQueueRunning;
   async function processQueueMessage(message) {
+    console.log(`processQ ${JSON.stringify(message)}`);
     kdebug(`processQ ${JSON.stringify(message)}`);
     kdebug(legibilizeMessage(message));
     if (processQueueRunning) {
       console.error(`We're currently already running at`, processQueueRunning);
       assert.fail(X`Kernel reentrancy is forbidden`);
     }
+    let policyInput = { type: 'none' };
     try {
       processQueueRunning = Error('here');
       resetDeliveryTriggers();
@@ -712,14 +728,14 @@ export default function buildKernel(
           kernelKeeper.decrementRefCount(argSlot, `deq|msg|s${idx}`);
           idx += 1;
         }
-        await deliverToTarget(message.target, message.msg);
+        policyInput = await deliverToTarget(message.target, message.msg);
       } else if (message.type === 'notify') {
         kernelKeeper.decrementRefCount(message.kpid, `deq|notify`);
-        await processNotify(message);
+        policyInput = await processNotify(message);
       } else if (message.type === 'create-vat') {
-        await processCreateVat(message);
+        policyInput = await processCreateVat(message);
       } else if (gcMessages.includes(message.type)) {
-        await processGCMessage(message);
+        policyInput = await processGCMessage(message);
       } else {
         assert.fail(X`unable to process message.type ${message.type}`);
       }
@@ -755,6 +771,7 @@ export default function buildKernel(
     } finally {
       processQueueRunning = undefined;
     }
+    return harden(policyInput);
   }
 
   const gcTools = harden({
@@ -1030,7 +1047,8 @@ export default function buildKernel(
     // process a single message
     const message = getNextMessage();
     if (message) {
-      await processQueueMessage(message);
+      const policyInput = await processQueueMessage(message);
+      console.log(`policyInput`, policyInput);
       if (kernelPanic) {
         throw kernelPanic;
       }
@@ -1040,7 +1058,21 @@ export default function buildKernel(
     }
   }
 
-  async function run() {
+  function foreverPolicy() {
+    return harden({
+      vatCreated() {
+        return true;
+      },
+      crankComplete(_computrons) {
+        return true;
+      },
+      crankFailed() {
+        return true;
+      },
+    });
+  }
+
+  async function run(policy = foreverPolicy()) {
     if (kernelPanic) {
       throw kernelPanic;
     }
@@ -1054,9 +1086,31 @@ export default function buildKernel(
         break;
       }
       // eslint-disable-next-line no-await-in-loop
-      await processQueueMessage(message);
+      const policyInput = await processQueueMessage(message);
       if (kernelPanic) {
         throw kernelPanic;
+      }
+      console.log(`policyInput`, policyInput);
+      switch (policyInput.type) {
+        case 'create-vat':
+          if (!policy.vatCreated()) {
+            return count;
+          }
+          break;
+        case 'crank':
+          if (!policy.crankComplete(policyInput.computrons)) {
+            return count;
+          }
+          break;
+        case 'crank-failed':
+          if (!policy.crankFailed()) {
+            return count;
+          }
+          break;
+        case 'none':
+          break;
+        default:
+          assert.fail(`unknown policyInput ${policyInput.type}`, policyInput);
       }
       count += 1;
     }
