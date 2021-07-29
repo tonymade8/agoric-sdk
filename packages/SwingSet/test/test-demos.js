@@ -1,4 +1,3 @@
-/* global __dirname */
 import { test } from '../tools/prepare-test-env-ava.js';
 
 // eslint-disable-next-line import/order
@@ -46,7 +45,7 @@ const encouragementBotGolden = [
 
 test('run encouragementBot Demo', async t => {
   const dump = await main(
-    path.resolve(__dirname, '../demo/encouragementBot'),
+    new URL('../demo/encouragementBot', import.meta.url).pathname,
     [],
   );
   t.deepEqual(dump.log, encouragementBotGolden);

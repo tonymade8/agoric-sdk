@@ -112,7 +112,7 @@ async function buildSwingset(
 
   const plugin = buildPlugin(pluginDir, pluginRequire, queueThunkForKernel);
 
-  const config = loadSwingsetConfigFile(`${__dirname}/../solo-config.json`);
+  const config = await loadSwingsetConfigFile(`${__dirname}/../solo-config.json`);
   config.devices = {
     mailbox: {
       sourceSpec: mb.srcPath,

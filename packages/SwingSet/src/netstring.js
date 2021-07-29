@@ -2,7 +2,7 @@
 import { assert, details as X } from '@agoric/assert';
 
 // adapted from 'netstring-stream', https://github.com/tlivings/netstring-stream/
-const { Transform } = require('stream');
+import { Transform } from 'stream';
 
 const COLON = 58;
 const COMMA = 44;

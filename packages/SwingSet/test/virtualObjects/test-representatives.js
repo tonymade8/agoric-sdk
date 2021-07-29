@@ -1,4 +1,3 @@
-/* global __dirname */
 import { test } from '../../tools/prepare-test-env-ava.js';
 
 // eslint-disable-next-line import/order
@@ -32,7 +31,8 @@ test('virtual object representatives', async t => {
     bootstrap: 'bootstrap',
     vats: {
       bootstrap: {
-        sourceSpec: path.resolve(__dirname, 'vat-representative-bootstrap.js'),
+        sourceSpec: new URL('vat-representative-bootstrap.js', import.meta.url)
+          .pathname,
         creationOptions: {
           virtualObjectCacheSize: 3,
         },
@@ -157,7 +157,8 @@ test('exercise cache', async t => {
     bootstrap: 'bootstrap',
     vats: {
       bootstrap: {
-        sourceSpec: path.resolve(__dirname, 'vat-representative-bootstrap.js'),
+        sourceSpec: new URL('vat-representative-bootstrap.js', import.meta.url)
+          .pathname,
         creationOptions: {
           virtualObjectCacheSize: 3,
         },
@@ -441,13 +442,14 @@ test('virtual object gc', async t => {
     defaultManagerType: 'xs-worker',
     vats: {
       bob: {
-        sourceSpec: path.resolve(__dirname, 'vat-vom-gc-bob.js'),
+        sourceSpec: new URL('vat-vom-gc-bob.js', import.meta.url).pathname,
         creationOptions: {
           virtualObjectCacheSize: 3,
         },
       },
       bootstrap: {
-        sourceSpec: path.resolve(__dirname, 'vat-vom-gc-bootstrap.js'),
+        sourceSpec: new URL('vat-vom-gc-bootstrap.js', import.meta.url)
+          .pathname,
       },
     },
   };

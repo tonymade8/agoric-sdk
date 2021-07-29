@@ -1,4 +1,3 @@
-/* global __dirname */
 // eslint-disable-next-line import/order
 import { test } from '../../tools/prepare-test-env-ava.js';
 
@@ -23,7 +22,7 @@ test('unmetered dynamic vat', async t => {
     defaultManagerType: 'xs-worker',
     vats: {
       bootstrap: {
-        sourceSpec: path.join(__dirname, 'vat-load-dynamic.js'),
+        sourceSpec: new URL('vat-load-dynamic.js', import.meta.url).pathname,
       },
     },
   };
@@ -36,7 +35,7 @@ test('unmetered dynamic vat', async t => {
   // we'll give this bundle to the loader vat, which will use it to create a
   // new (unmetered) dynamic vat
   const dynamicVatBundle = await bundleSource(
-    path.join(__dirname, 'metered-dynamic-vat.js'),
+    new URL('metered-dynamic-vat.js', import.meta.url).pathname,
   );
 
   // 'createVat' will import the bundle

@@ -1,4 +1,3 @@
-/* global __dirname */
 import { test } from '../../tools/prepare-test-env-ava.js';
 
 // eslint-disable-next-line import/order
@@ -24,10 +23,12 @@ test('weakMap in vat', async t => {
     defaultManagerType: 'local',
     vats: {
       bootstrap: {
-        sourceSpec: path.resolve(__dirname, 'vat-weakcollections-bootstrap.js'),
+        sourceSpec: new URL('vat-weakcollections-bootstrap.js', import.meta.url)
+          .pathname,
       },
       alice: {
-        sourceSpec: path.resolve(__dirname, 'vat-weakcollections-alice.js'),
+        sourceSpec: new URL('vat-weakcollections-alice.js', import.meta.url)
+          .pathname,
       },
     },
   };

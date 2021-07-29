@@ -157,7 +157,7 @@ export function buildMailboxStateMap(state = harden(new Map())) {
 }
 
 export function buildMailbox(state) {
-  const srcPath = require.resolve('./mailbox-src');
+  const srcPath = new URL('mailbox-src', import.meta.url).pathname;
 
   // endowments made available to the inner half
   let inboundCallback;
