@@ -8,7 +8,8 @@
  * @typedef { "undefined" | "null" |
  *   "boolean" | "number" | "bigint" | "string" | "symbol" |
  *   "copyArray" | "copyRecord" | "copyTagged" | "remotable" |
- *   "copyError" | "promise" | "copyMeta"
+ *   "copyError" | "promise" | "copyMeta" |
+ *   "copySet" | "copyMap" | "patternNode"
  * } PassStyle
  */
 

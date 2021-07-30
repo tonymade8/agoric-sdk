@@ -80,7 +80,6 @@ const checkRemotableProtoOf = (original, check = x => x) => {
    *
    * @type {{ [PASS_STYLE]: string,
    *          [Symbol.toStringTag]: string,
-   *          toString: () => void
    *        }}
    */
   const proto = getPrototypeOf(original);
@@ -130,7 +129,6 @@ const checkRemotableProtoOf = (original, check = x => x) => {
   const {
     // @ts-ignore https://github.com/microsoft/TypeScript/issues/1863
     [PASS_STYLE]: _passStyleDesc,
-    toString: toStringDesc,
     // @ts-ignore https://github.com/microsoft/TypeScript/issues/1863
     [Symbol.toStringTag]: ifaceDesc,
     ...restDescs
@@ -140,11 +138,6 @@ const checkRemotableProtoOf = (original, check = x => x) => {
     check(
       ownKeys(restDescs).length === 0,
       X`Unexpected properties on Remotable Proto ${ownKeys(restDescs)}`,
-    ) &&
-    check(
-      // @ts-ignore TypeScript thinks this is a toString method, not descriptor
-      typeof toStringDesc.value === 'function',
-      X`toString must be a function`,
     ) &&
     // @ts-ignore red highlights in vscode but `yarn test` clean.
     checkIface(ifaceDesc && ifaceDesc.value, check)

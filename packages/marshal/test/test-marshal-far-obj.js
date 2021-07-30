@@ -124,6 +124,9 @@ const NON_METHOD = {
 const IFACE_ALLEGED = {
   message: /For now, iface "Bad remotable proto" must be "Remotable" or begin with "Alleged: "; unimplemented/,
 };
+const UNEXPECTED_PROPS = {
+  message: /Unexpected properties on Remotable Proto .*/,
+};
 const UNEXPECTED_PASS_STYLE = {
   message: /Unrecognized PassStyle/,
 };
@@ -142,13 +145,9 @@ test('passStyleOf validation of remotables', t => {
 
   t.is(passStyleOf(sub(goodRemotableProto)), 'remotable');
 
-  // t.throws(() => passStyleOf(sub(badRemotableProto1)), UNEXPECTED_PROPS);
-  // t.throws(() => passStyleOf(sub(badRemotableProto2)), EXPECTED_PRESENCE);
-  // t.throws(() => passStyleOf(sub(badRemotableProto3)), UNEXPECTED_PROPS);
   t.throws(() => passStyleOf(sub(badRemotableProto1)), EXPECTED_PASS_STYLE);
   t.throws(() => passStyleOf(sub(badRemotableProto2)), UNEXPECTED_PASS_STYLE);
-  // t.throws(() => passStyleOf(sub(badRemotableProto3)), TO_STRING_NONFUNC);
-
+  t.throws(() => passStyleOf(sub(badRemotableProto3)), UNEXPECTED_PROPS);
   t.throws(() => passStyleOf(sub(badRemotableProto4)), IFACE_ALLEGED);
 });
 
