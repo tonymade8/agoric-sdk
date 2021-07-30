@@ -10,7 +10,7 @@ export function buildRootDeviceNode(tools) {
 
   let registeredReceiver = restart && restart.registeredReceiver;
 
-  const senders = {};
+  const senderPs = {};
   // Take a shallow copy so that these are not frozen.
   const connectedMods = restart ? [...restart.connectedMods] : [];
   const nextEpochs = restart ? [...restart.nextEpochs] : [];
@@ -30,6 +30,20 @@ export function buildRootDeviceNode(tools) {
   // Register our first state.
   saveState();
 
+  function register(mod, index) {
+    if (connectedMods[index] === undefined) {
+      connectedMods[index] = mod;
+    }
+    if (connectedMods[index] !== mod) {
+      throw TypeError(
+        `Index ${index} is already allocated to ${connectedMods[index]}, not ${mod}`,
+      );
+    }
+    const epoch = nextEpochs[index] || 0;
+    nextEpochs[index] = epoch + 1;
+    saveState();
+  }
+
   /**
    * Load a module and connect to it.
    *
@@ -37,22 +51,12 @@ export function buildRootDeviceNode(tools) {
    * @param {number} [index=connectedMods.length] the module instance index
    * @returns {(obj: Record<string, any>) => void} send a message to the module
    */
-  function connect(mod, index = connectedMods.length) {
+  async function makeSender(mod, index) {
     try {
       // Allocate this module first.
-      if (connectedMods[index] === undefined) {
-        connectedMods[index] = mod;
-      }
-      if (connectedMods[index] !== mod) {
-        throw TypeError(
-          `Index ${index} is already allocated to ${connectedMods[index]}, not ${mod}`,
-        );
-      }
-      const epoch = nextEpochs[index] || 0;
-      nextEpochs[index] = epoch + 1;
-      saveState();
+      const epoch = register(mod, index);
 
-      const modNS = endowments.require(mod);
+      const modNS = await endowments.import(mod);
       const receiver = obj => {
         // console.info('receiver', index, obj);
 
@@ -85,27 +89,41 @@ export function buildRootDeviceNode(tools) {
       // Establish a CapTP connection.
       const { dispatch } = makeCapTP(mod, receiver, bootstrap, { epoch });
 
-      // Save the dispatch function for later.
-      senders[index] = dispatch;
-      return index;
+      return dispatch;
     } catch (e) {
       console.error(`Cannot connect to ${mod}:`, e);
       return `${(e && e.stack) || e}`;
     }
   }
 
+  /**
+   * Load a module and connect to it.
+   *
+   * @param {string} mod module with an exported `bootPlugin(state = undefined)`
+   * @param {number} [index=connectedMods.length] the module instance index
+   * @returns {(obj: Record<string, any>) => void} send a message to the module
+   */
+  function connect(mod, index = connectedMods.length) {
+    register(mod, index);
+    if (senderPs[index] === undefined) {
+      // Lazily create a fresh sender.
+      senderPs[index] = makeSender(mod, index);
+    }
+    return index;
+  }
+
   function send(index, obj) {
     const mod = connectedMods[index];
     // console.info('send', index, obj, mod);
     assert(mod, X`No module associated with ${index}`, TypeError);
-    let sender = senders[index];
-    if (!sender) {
+    let senderP = senderPs[index];
+    if (!senderP) {
       // Lazily create a fresh sender.
-      connect(mod, index);
-      sender = senders[index];
+      senderPs[index] = makeSender(mod, index);
     }
     // Now actually send.
-    sender(obj);
+    senderPs[index].then(sender => sender(obj));
+    // TODO drain errors
   }
 
   endowments.registerResetter(() => {

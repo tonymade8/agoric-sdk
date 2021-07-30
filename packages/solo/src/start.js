@@ -98,7 +98,7 @@ async function buildSwingset(
   const pluginDir = path.resolve('./plugins');
   fs.mkdirSync(pluginDir, { recursive: true });
   const pluginsPrefix = `${pluginDir}${path.sep}`;
-  const pluginRequire = mod => {
+  const pluginRequire = async mod => {
     // Ensure they can't traverse out of the plugins prefix.
     const pluginFile = path.resolve(pluginsPrefix, mod);
     assert(
@@ -107,7 +107,7 @@ async function buildSwingset(
     );
 
     // eslint-disable-next-line import/no-dynamic-require,global-require
-    return require(pluginFile);
+    return import(pluginFile);
   };
 
   const plugin = buildPlugin(pluginDir, pluginRequire, queueThunkForKernel);

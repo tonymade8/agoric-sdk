@@ -99,7 +99,7 @@ export function makePluginManager(pluginDevice, { D, ...vatPowers }) {
      *
      * @type {LoadPlugin}
      */
-    load(specifier, opts = undefined, resetter = DEFAULT_RESETTER) {
+    async load(specifier, opts = undefined, resetter = DEFAULT_RESETTER) {
       // This is the internal state: a promise kit that doesn't
       // resolve until we are connected.  It is replaced by
       // a new promise kit when we abort the prior module connection.
