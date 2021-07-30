@@ -49,14 +49,14 @@ export function buildRootDeviceNode(tools) {
    *
    * @param {string} mod module with an exported `bootPlugin(state = undefined)`
    * @param {number} [index=connectedMods.length] the module instance index
+   * @param {number} epoch TODO
    * @returns {(obj: Record<string, any>) => void} send a message to the module
    */
-  async function makeSender(mod, index) {
+  async function createConnection(mod, index, epoch) {
     try {
-      // Allocate this module first.
-      const epoch = register(mod, index);
-
+      console.log('+endowments.import', mod);
       const modNS = await endowments.import(mod);
+      console.log('-endowments.import', mod);
       const receiver = obj => {
         // console.info('receiver', index, obj);
 
@@ -104,10 +104,13 @@ export function buildRootDeviceNode(tools) {
    * @returns {(obj: Record<string, any>) => void} send a message to the module
    */
   function connect(mod, index = connectedMods.length) {
-    register(mod, index);
+    const epoch = register(mod, index);
     if (senderPs[index] === undefined) {
       // Lazily create a fresh sender.
-      senderPs[index] = makeSender(mod, index);
+      senderPs[index] = createConnection(mod, index, epoch);
+      senderPs[index].catch(e => {
+        console.error(e);
+      });
     }
     return index;
   }
@@ -116,14 +119,15 @@ export function buildRootDeviceNode(tools) {
     const mod = connectedMods[index];
     // console.info('send', index, obj, mod);
     assert(mod, X`No module associated with ${index}`, TypeError);
-    let senderP = senderPs[index];
-    if (!senderP) {
+    if (!senderPs[index]) {
       // Lazily create a fresh sender.
-      senderPs[index] = makeSender(mod, index);
+      connect(mod, index);
+      // senderPs populated as a side-effect of connect.
     }
     // Now actually send.
-    senderPs[index].then(sender => sender(obj));
-    // TODO drain errors
+    senderPs[index].then(sender => sender(obj)).catch(e => {
+      console.error(e);
+    });
   }
 
   endowments.registerResetter(() => {

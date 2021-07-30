@@ -1,6 +1,7 @@
 import { Far } from '@agoric/marshal';
 
 export function bootPlugin() {
+  console.log('boot pingpong');
   return Far('iface', {
     start(opts) {
       const { prefix } = opts;

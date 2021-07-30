@@ -69,6 +69,10 @@ async function setupVatController(t) {
       // eslint-disable-next-line no-await-in-loop
       await c.run();
     }
+    console.log('wait for io');
+    await new Promise(resolve => setImmediate(resolve));
+    console.log('wait for flush');
+    await c.run();
   };
   return { bridge, cycle, dump: c.dump, plugin, queueThunkForKernel };
 }
