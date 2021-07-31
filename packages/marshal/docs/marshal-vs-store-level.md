@@ -11,7 +11,7 @@ On the right is the *JS* level, explaining how these map onto JavaScript languag
 | Classification | `keyStyleOf(p)`<br>`patternStyleOf(p)` | `passStyleOf(p)`<br>`getInterfaceOf(j)` | `typeof j`                   |
 | Type Testing   | `isKey(p)`         | `isOnlyData(p)`<br>`isStructure(p)` | `isPrimitive(j)`<br>`Array.isArray(j)`               |
 | Equivalence    | `sameKey(k,k)`     | `sameStructure(s,s)`                | `j === j`<br>`Object.is(j,j)`<br>`sameValeZero(j,j)` |
-| Ordering       | `compareKeys(k,k)` | `comparePassables(p,p)`             | `j <= j`<br>`Array.prototype.sort(fullCompare)`      |
+| Ordering       | `compareKeys(k,k)` | `comparePassables(p,p)`             | `j <= j`<br>`[...js].sort(fullCompare(j,j))`      |
 
 Where the parameter
    * `j` is for any JavaScript value.
