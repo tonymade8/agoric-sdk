@@ -45,7 +45,7 @@ Each remaining **passable** is either
   * An *error* carrying diagnostic information.
   * A *promise*, providing the eventual distributed access that JavaScript's promises were designed to provide.
   * A *metaTagged*, like the copyTagged, is the extension point used by the Store level to implement
- *patternNodes*. The distinction is that a metaTagged is necessarily *not* a structure or a key, and so can be applied to structures and keys without ambiguity or confusion.
+ *patternNodes*. The distinction is that a metaTagged is necessarily *not* a structure or a key. Thus, a patternNode, encoded into a metaTagged, can be applied to a structure or key specimen, knowing that the specimen cannot itself contain a patternNode. This avoid a tricky source of ambiguity and confusion.
 
 **`sameStructure(s: Structure, t: Structure) => boolean`**<br>
  implements the most precise equivalence class meaningful at the Marshal layer. However, it is narrow, admitting only structures.
