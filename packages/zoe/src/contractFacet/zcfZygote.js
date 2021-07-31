@@ -264,7 +264,10 @@ export const makeZCFZygote = (
     handleOffer: (invitationHandle, zoeSeatAdmin, seatData) => {
       const zcfSeat = makeZCFSeat(zoeSeatAdmin, seatData);
       const offerHandler = takeOfferHandler(invitationHandle);
-      const offerResultP = E(offerHandler)(zcfSeat).catch(reason => {
+      const offerResultP = E(offerHandler)(
+        zcfSeat,
+        seatData.optionalArgs,
+      ).catch(reason => {
         if (reason === undefined) {
           const newErr = new Error(
             `If an offerHandler throws, it must provide a reason of type Error, but the reason was undefined. Please fix the contract code to specify a reason for throwing.`,
@@ -291,6 +294,7 @@ export const makeZCFZygote = (
       instanceAdminFromZoe,
       instanceRecordFromZoe,
       issuerStorageFromZoe,
+      privateTerms,
     ) => {
       zoeInstanceAdminPromiseKit.resolve(instanceAdminFromZoe);
       instantiateInstanceRecordStorage(instanceRecordFromZoe);
@@ -299,7 +303,7 @@ export const makeZCFZygote = (
       // Next, execute the contract code, passing in zcf
       /** @type {Promise<ExecuteContractResult>} */
       const result = E(contractCode)
-        .start(zcf)
+        .start(zcf, privateTerms)
         .then(
           ({
             creatorFacet = Far('emptyCreatorFacet', {}),

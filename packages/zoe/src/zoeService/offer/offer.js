@@ -1,4 +1,5 @@
 // @ts-check
+import { mustBeComparable } from '@agoric/same-structure';
 
 import { cleanProposal } from '../../cleanProposal';
 import { burnInvitation } from './burnInvitation';
@@ -26,6 +27,7 @@ export const makeOffer = (
     invitation,
     uncleanProposal = harden({}),
     paymentKeywordRecord = harden({}),
+    optionalArgs = harden({}),
   ) => {
     const { instanceHandle, invitationHandle } = await burnInvitation(
       invitationIssuer,
@@ -36,6 +38,7 @@ export const makeOffer = (
     instanceAdmin.assertAcceptingOffers();
 
     const proposal = cleanProposal(uncleanProposal, getAssetKindByBrand);
+    mustBeComparable(optionalArgs);
     const initialAllocation = await depositPayments(
       proposal,
       paymentKeywordRecord,
@@ -47,6 +50,7 @@ export const makeOffer = (
       invitationHandle,
       initialAllocation,
       proposal,
+      optionalArgs,
     );
     // AWAIT ///
     return userSeat;

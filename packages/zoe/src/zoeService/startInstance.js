@@ -26,6 +26,7 @@ export const makeStartInstance = (
     installationP,
     uncleanIssuerKeywordRecord = harden({}),
     customTerms = harden({}),
+    privateTerms,
   ) => {
     /** @type {WeakStore<SeatHandle, ZoeSeatAdmin>} */
     const seatHandleToZoeSeatAdmin = makeNonVOWeakStore('seatHandle');
@@ -81,7 +82,12 @@ export const makeStartInstance = (
           zoeSeatAdmins.forEach(zoeSeatAdmin => zoeSeatAdmin.fail(reason));
         },
         stopAcceptingOffers: () => (acceptingOffers = false),
-        makeUserSeat: (invitationHandle, initialAllocation, proposal) => {
+        makeUserSeat: (
+          invitationHandle,
+          initialAllocation,
+          proposal,
+          optionalArgs,
+        ) => {
           const offerResultPromiseKit = makePromiseKit();
           handlePKitWarning(offerResultPromiseKit);
           const exitObjPromiseKit = makePromiseKit();
@@ -105,6 +111,7 @@ export const makeStartInstance = (
             initialAllocation,
             notifier,
             seatHandle,
+            optionalArgs,
           });
 
           zoeSeatAdmins.add(zoeSeatAdmin);
@@ -190,6 +197,7 @@ export const makeStartInstance = (
       zoeInstanceAdminForZcf,
       zoeInstanceStorageManager.getInstanceRecord(),
       zoeInstanceStorageManager.getIssuerRecords(),
+      privateTerms,
     );
 
     handleOfferObjPromiseKit.resolve(handleOfferObj);

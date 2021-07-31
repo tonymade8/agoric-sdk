@@ -105,22 +105,14 @@ export const makeZoeStorageManager = createZCFVat => {
       return issuerRecord;
     };
 
-    /** @type {MakeZoeMint} */
-    const makeZoeMint = (keyword, assetKind = AssetKind.NAT, displayInfo) => {
-      // Local indicates one that zoe itself makes from vetted code,
-      // and so can be assumed correct and fresh by zoe.
+    const makeZoeMintPremadeKit = (keyword, localIssuerKit) => {
       const {
         mint: localMint,
         issuer: localIssuer,
         brand: localBrand,
         displayInfo: localDisplayInfo,
-      } = makeIssuerKit(
-        keyword,
-        assetKind,
-        displayInfo,
-        // eslint-disable-next-line no-use-before-define
-        adminNode.terminateWithFailure,
-      );
+      } = localIssuerKit;
+
       const localIssuerRecord = makeIssuerRecord(
         localBrand,
         localIssuer,
@@ -160,6 +152,20 @@ export const makeZoeStorageManager = createZCFVat => {
         },
       });
       return zoeMint;
+    };
+
+    /** @type {MakeZoeMint} */
+    const makeZoeMint = (keyword, assetKind = AssetKind.NAT, displayInfo) => {
+      // Local indicates one that zoe itself makes from vetted code,
+      // and so can be assumed correct and fresh by zoe.
+      const localIssuerKit = makeIssuerKit(
+        keyword,
+        assetKind,
+        displayInfo,
+        // eslint-disable-next-line no-use-before-define
+        adminNode.terminateWithFailure,
+      );
+      return makeZoeMintPremadeKit(keyword, localIssuerKit);
     };
 
     /** @type {GetIssuerRecords} */

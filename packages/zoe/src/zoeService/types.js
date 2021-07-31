@@ -111,6 +111,7 @@
  * @param {ERef<Installation>} installation
  * @param {IssuerKeywordRecord=} issuerKeywordRecord
  * @param {Object=} terms
+ * @param {Object=} privateTerms
  * @returns {Promise<StartInstanceResult>}
  */
 
@@ -134,6 +135,7 @@
  * @param {ERef<Invitation>} invitation
  * @param {Proposal=} proposal
  * @param {PaymentPKeywordRecord=} paymentKeywordRecord
+ * @param {Object=} optionalArgs
  * @returns {Promise<UserSeat>} seat
  */
 

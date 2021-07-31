@@ -14,6 +14,7 @@
  * @property {Notifier<Allocation>} notifier
  * @property {Allocation} initialAllocation
  * @property {SeatHandle} seatHandle
+ * @property {Object=} optionalArgs
  */
 
 /**
@@ -75,7 +76,7 @@
  * @property {() => void} assertAcceptingOffers
  * @property {(invitationHandle: InvitationHandle,
  *     initialAllocation: Allocation,
- *     proposal: ProposalRecord) => UserSeat } makeUserSeat
+ *     proposal: ProposalRecord, optionalArgs: Object=) => UserSeat } makeUserSeat
  * @property {MakeNoEscrowSeat} makeNoEscrowSeat
  * @property {() => Instance} getInstance
  * @property {() => Object} getPublicFacet
@@ -178,6 +179,7 @@
  * @param {ZoeInstanceAdmin} zoeInstanceAdmin
  * @param {InstanceRecord} instanceRecord
  * @param {IssuerRecords} issuerStorageFromZoe
+ * @param {Object=} privateTerms
  * @returns {Promise<ExecuteContractResult>}
  *
  */

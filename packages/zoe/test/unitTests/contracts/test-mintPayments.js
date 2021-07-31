@@ -51,7 +51,14 @@ test('zoe - mint payments', async t => {
 
         const { instance } = invitationValue;
 
-        const seat = await E(zoe).offer(invitation);
+        const seat = await E(zoe).offer(
+          invitation,
+          undefined,
+          undefined,
+          harden({
+            value: 4000n,
+          }),
+        );
 
         const paymentP = E(seat).getPayout('Token');
 
@@ -61,11 +68,11 @@ test('zoe - mint payments', async t => {
         const tokenIssuer = await E(publicFacet).getTokenIssuer();
         const tokenBrand = await E(tokenIssuer).getBrand();
 
-        const tokens1000 = await AmountMath.make(1000n, tokenBrand);
+        const tokens4000 = await AmountMath.make(4000n, tokenBrand);
         const tokenPayoutAmount = await E(tokenIssuer).getAmountOf(paymentP);
 
-        // Bob got 1000 tokens
-        t.deepEqual(tokenPayoutAmount, tokens1000);
+        // Bob got 4000 tokens
+        t.deepEqual(tokenPayoutAmount, tokens4000);
       },
     };
   };
@@ -74,7 +81,7 @@ test('zoe - mint payments', async t => {
   const alice = await makeAlice();
   const installation = await alice.installCode();
   const { creatorFacet } = await E(alice).startInstance(installation);
-  const invitation = E(creatorFacet).makeInvitation(1000);
+  const invitation = E(creatorFacet).makeInvitation();
 
   // Setup Bob
   const bob = makeBob(installation);
@@ -139,6 +146,7 @@ test('zoe - mint payments with unrelated give and want', async t => {
           invitation,
           proposal,
           paymentKeywordRecord,
+          harden({ value: 2000n }),
         );
 
         const tokenPaymentP = E(seat).getPayout('Token');
@@ -150,13 +158,13 @@ test('zoe - mint payments with unrelated give and want', async t => {
         const tokenIssuer = await E(publicFacet).getTokenIssuer();
         const tokenBrand = await E(tokenIssuer).getBrand();
 
-        const tokens1000 = await AmountMath.make(1000n, tokenBrand);
+        const tokens2000 = await AmountMath.make(2000n, tokenBrand);
         const tokenPayoutAmount = await E(tokenIssuer).getAmountOf(
           tokenPaymentP,
         );
 
-        // Bob got 1000 tokens
-        t.deepEqual(tokenPayoutAmount, tokens1000);
+        // Bob got 2000 tokens
+        t.deepEqual(tokenPayoutAmount, tokens2000);
 
         // Got refunded all the moola given
         t.deepEqual(
@@ -171,7 +179,7 @@ test('zoe - mint payments with unrelated give and want', async t => {
   const alice = await makeAlice();
   const installation = await alice.installCode();
   const { creatorFacet } = await E(alice).startInstance(installation);
-  const invitation = E(creatorFacet).makeInvitation(1000);
+  const invitation = E(creatorFacet).makeInvitation();
 
   // Setup Bob
   const bob = makeBob(
