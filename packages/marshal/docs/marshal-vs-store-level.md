@@ -1,4 +1,4 @@
-# Passables: Marshal level *vs* Store Level
+# Passables: Store level of abstraction *vs* Marshal Level
 
 We have three very distinct abstraction level in our system in which to describe the passable data types and the operations on them. On the left is the higher *Store* level, containing the passable data types and operations of concern to the normal application programmer. A document intended for those application programmers would explain the Store level in a self contained manner. This is not that document.
 
