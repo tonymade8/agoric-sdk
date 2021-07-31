@@ -72,11 +72,12 @@ Primitives and remotables are keys. copyArrays, copyRecords, copySets, and copyM
 defines an equivalence class of keys. `sameKey` is less precise than `sameStructure`. For example, a copySet is encoded into a copyTagged in sorted order according to `comparePassables`. Because remotables are distinct but cannot be canonically ordered, two copySets `s` and `t` representing the same logical set may be encoded into different copyTagged representations. In that case, `sameKey(s,t)` would be true but `sameStructure(s,t)` would be false. `sameKey` is also narrower than `sameStructure`. copyTaggeds that are not recognized as copySets or copyMaps are not keys and would be rejected by `sameKey` but may still be accepted by `sameStructure`.
 
 **`compareKeys(left :Key, right: Key) => -1 | 0 | 1 | undefined`**<br>
-defines a partial order over all keys, comparing magnitudes. `compareKeys` returns `undefined` to indicate that the two keys are incommensurate, that their magnitudes cannot meaningfully be compared. Three clear example of how this differs from `compareStructures`:
+defines a partial order over all keys, comparing magnitudes. `compareKeys` returns `undefined` to indicate that the two keys are incommensurate, that their magnitudes cannot meaningfully be compared. Some example of how this differs from `compareStructures`:
    * `compareStructures`, in order to sort all passables, compares passables of different pass styles according to the order of those
      pass styles listed above. `compareKeys`, applied to keys of different key styles will always return `undefined`.
    * `compareStructures` orders `NaN` after all other numbers. Which is an arbitrary choice, but some choice was necessary. In order to preserve reflexivity, in violation of IEEE floating point recommendations `compareKeys(NaN,NaN) === 0`. But comparing `NaN` and anything else will produce `undefined`.
    * Applied to two copySets `s` and `t`, `compareStructures(s,t)` will do a lexicographic comparison of their copyTagged representation. `compareKeys(s,t)` will check if either is a subset of the other. If each contains elements the other lacks, then `compareKeys` will return `undefined`.
+   * Given two distinct remotables `r` and `q`, `compareStructures(r,q) === 0` but `compareKeys(r,q)` === undefined.
 
 ## The copySet example
 
