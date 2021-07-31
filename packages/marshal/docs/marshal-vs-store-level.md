@@ -60,8 +60,8 @@ implements a full order over *all* passables, suitable for sorting, including wi
 
 `KeyStyle`:
    * The Store's **prmitive styles** are identical to Marshal's.
-   * The Store's *data styles* styles preserves the `"copyArray"` and `"copyRecord"` classification from Marshal's data styles, omits `"copyTagged"`, but uses it to implement the `"copySet"` and `"copyMap"` that it introduces. The store level must also recognize whether a copyTagged that claims to be a copySet or copyMap has a valid representation. A copyTagged that does not validate is not a key.
-   * Store's *"remotable"* is identical to Marshal's. Every remotable is a key. On two remotables `p` and `q`, `sameKey(p,q)` compares using the remotable's unique unforgeable identity. Thus, for two remotables, `sameKey(p,q)` iff `sameStructure(p,q)` iff `p === q` iff `Object.is(p,q)` iff `sameValueZero(p,q)`.
+   * The Store's **data styles** styles preserves the `"copyArray"` and `"copyRecord"` classification from Marshal's data styles, omits `"copyTagged"`, but uses it to implement the `"copySet"` and `"copyMap"` that it introduces. The store level must also recognize whether a copyTagged that claims to be a copySet or copyMap has a valid representation. A copyTagged that does not validate is not a key.
+   * Store's **"remotable"** is identical to Marshal's. Every remotable is a key. On two remotables `p` and `q`, `sameKey(p,q)` compares using the remotable's unique unforgeable identity. Thus, for two remotables, `sameKey(p,q)` iff `sameStructure(p,q)` iff `p === q` iff `Object.is(p,q)` iff `sameValueZero(p,q)`.
    * The remaining passables, errors, promises, and metaTaggeds, are not keys. `keyStyleOf` applied to any of them throws.
 
 Primitives and remotables are keys. copyArrays, copyRecords, copySets, and copyMaps are key-like containers. If a key-like container contains only keys, then it is a key.
