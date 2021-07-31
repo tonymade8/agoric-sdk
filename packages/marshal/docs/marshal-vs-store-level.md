@@ -2,7 +2,7 @@
 
 We have three very distinct abstraction level in our system in which to describe the passable data types and the operations on them. On the left is the higher *Store* level, containing the passable data types and operations of concern to the normal application programmer. A document intended for those application programmers would explain the Store level in a self contained manner. This is not that document.
 
-In the middle is the lower level *Marshal* level of abstraction, which defines the semantics of the language-independent protocol. The Marshal level provides the data types and operations used to implement the Store level. The Marshal layer provides interoperability both between endpoints of different languages, and between endpoints defining higher layers instead or or in addition to the Store layer.
+In the middle is the lower *Marshal* level of abstraction, which defines the semantics of the language-independent protocol. The Marshal level provides the data types and operations used to implement the Store level. The Marshal layer provides interoperability both between endpoints of different languages, and between endpoints defining higher layers instead or or in addition to the Store layer.
 
 On the right is the *JS* level, explaining how these map onto JavaScript language. This mapping determines how JavaScript values round trips or not through the protocol. Only hardened JavaScript values can be passable.
 
