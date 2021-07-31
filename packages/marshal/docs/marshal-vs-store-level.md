@@ -73,8 +73,8 @@ defines an equivalence class of keys. `sameKey` is less precise than `sameStruct
 
 **`compareKeys(left :Key, right: Key) => -1 | 0 | 1 | undefined`**<br>
 defines a partial order over all keys, comparing magnitudes. `compareKeys` returns `undefined` to indicate that the two keys are incommensurate, that their magnitudes cannot meaningfully be compared. Three clear example of how this differs from `compareStructures`:
-   * `compareStructures`, in order to sort all passables, compares passables of different passable styles according to the order of those
-     passable styles listed above. `compareKeys`, applied to keys of different key styles will always return `undefined`.
+   * `compareStructures`, in order to sort all passables, compares passables of different pass styles according to the order of those
+     pass styles listed above. `compareKeys`, applied to keys of different key styles will always return `undefined`.
    * `compareStructures` orders `NaN` after all other numbers. Which is an arbitrary choice, but some choice was necessary. In order to preserve reflexivity, in violation of IEEE floating point recommendations `compareKeys(NaN,NaN) === 0`. But comparing `NaN` and anything else will produce `undefined`.
    * Applied to two copySets `s` and `t`, `compareStructures(s,t)` will do a lexicographic comparison of their copyTagged representation. `compareKeys(s,t)` will check if either is a subset of the other. If each contains elements the other lacks, then `compareKeys` will return `undefined`.
 
