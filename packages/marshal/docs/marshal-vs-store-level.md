@@ -51,7 +51,7 @@ Each remaining **passable** is either
  implements the most precise equivalence class meaningful at the Marshal layer. However, it is narrow, admitting only structures.
 
 **`comparePassables(left: Passable, right :Passable) => -1 | 0 | 1`**<br>
-implements a full order over *all* passables, suitable for sorting with `Array.prototype.sort`. However, it is a very imprecise full order. For example, for any two remotables `p` and `q`, `comparePassables(p,q) === 0`. All remotables are therefore equivalent in this order. Likewise for all errors, all promises, and all metaTaggeds. Thus, `comparePassable` equivalence is an equivalence class over all passables, but an imprecise one.
+implements a full order over *all* passables, suitable for sorting with `Array.prototype.sort`. However, it is a very imprecise full order. For example, for any two remotables `r` and `q`, `comparePassables(r,q) === 0`. All remotables are therefore equivalent in this order. Likewise for all errors, all promises, and all metaTaggeds. Thus, `comparePassable`'s zero answer provides an equivalence class over all passables, but an imprecise one.
 
  ## The Store level organized by `keyStyleOf`
 
