@@ -65,7 +65,7 @@ implements a full order over *all* passables, suitable for sorting, including wi
    * The remaining passables: errors, promises, and metaTaggeds, are not keys. `keyStyleOf` applied to any of them throws.
 
 Primitives and remotables are keys. copyArrays, copyRecords, copySets, and copyMaps are key-like containers. If a key-like container contains only keys, then it is a key.
-  * A *copySet* can only store keys, and so each copySet is necessarily a key.
+  * A *copySet* can only contain keys, and so each copySet is necessarily a key.
   * A *copyMap* entry can use only use a key as a key, but can use any passable as a value including unrecognized copyTaggeds. But a copyMap is a key only of all of its values are keys.
 
 **`sameKey(k1 :Key, k2: Key) => boolean`**<br>
